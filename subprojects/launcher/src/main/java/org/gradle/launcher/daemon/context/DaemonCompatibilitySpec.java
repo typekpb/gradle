@@ -37,14 +37,16 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     @Override
     public String whyUnsatisfied(DaemonContext context) {
+        String reason = null;
         if (!javaHomeMatches(context)) {
-            return "Java home is different.\n" + description(context);
+            reason = "Java home is different.\n" + description(context);
         } else if (!daemonOptsMatch(context)) {
-            return "At least one daemon option is different.\n" + description(context);
+            reason = "At least one daemon option is different.\n" + description(context);
         } else if (!priorityMatches(context)) {
-            return "Process priority is different.\n" + description(context);
+            reason = "Process priority is different.\n" + description(context);
         }
-        return null;
+        System.out.println("Not compatible: " + reason);
+        return reason;
     }
 
     private String description(DaemonContext context) {
