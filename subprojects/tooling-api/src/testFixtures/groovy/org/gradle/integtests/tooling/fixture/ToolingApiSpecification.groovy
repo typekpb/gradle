@@ -97,7 +97,7 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     GradleDistribution getTargetDist() {
-        if (targetGradleDistribution == null)  {
+        if (targetGradleDistribution == null) {
             throw new IllegalStateException("targetDist is not yet set by the testing framework")
         }
         return targetGradleDistribution
@@ -188,6 +188,7 @@ abstract class ToolingApiSpecification extends Specification {
         withConnection {
             def model = it.model(modelType)
             cl(model)
+            model.addJvmArguments("-Djava.io.tmpdir=" + temporaryFolder.getRoot().absolutePath)
             new ConfigurableOperation(model).buildModel()
         }
     }

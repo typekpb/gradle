@@ -195,6 +195,12 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withNoExplicitTmpDir();
 
     /**
+     * Set a temp directory explicitly. It will be passed via `-Djava.tmp.dir=X`.
+     * @return
+     */
+    GradleExecuter withTmpDir(File tmpDir);
+
+    /**
      * Don't set native services dir explicitly.
      */
     GradleExecuter withNoExplicitNativeServicesDir();
