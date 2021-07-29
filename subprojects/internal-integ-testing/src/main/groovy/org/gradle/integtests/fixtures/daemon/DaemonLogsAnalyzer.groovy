@@ -76,6 +76,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     DaemonFixture daemonForLogFile(File logFile) {
+        println("Daemon log ${logFile}\n ${logFile.text}")
         if (version == GradleVersion.current().version) {
             return new TestableDaemon(logFile, registry)
         }
