@@ -38,7 +38,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private <T> ModelBuilder<T> addUnifiedJvmArguments(ModelBuilder<T> modelBuilder) {
-        modelBuilder.addJvmArguments(JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${temporaryFolder.root.absolutePath}")
+        modelBuilder.addJvmArguments(JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
         return modelBuilder
     }
 
@@ -131,7 +131,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
 
     private GradleExecuter daemonExecutor() {
         targetDist.executer(temporaryFolder, getBuildContext())
-            .withTmpDir(temporaryFolder.root)
+//            .withTmpDir(temporaryFolder.root)
             .withDaemonBaseDir(toolingApi.daemonBaseDir)
             .withBuildJvmOpts(JVM_OPTS)
             .useOnlyRequestedJvmOpts()
