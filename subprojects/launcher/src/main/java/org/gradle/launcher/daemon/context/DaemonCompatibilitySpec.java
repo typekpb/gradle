@@ -55,6 +55,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     }
 
     private boolean daemonOptsMatch(DaemonContext potentialContext) {
+        System.out.println("potential: " + potentialContext.getDaemonOpts());
+        System.out.println("desired: " + desiredContext.getDaemonOpts());
         return potentialContext.getDaemonOpts().containsAll(desiredContext.getDaemonOpts())
             && potentialContext.getDaemonOpts().size() == desiredContext.getDaemonOpts().size();
     }
