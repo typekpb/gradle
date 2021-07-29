@@ -123,6 +123,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
     }
 
     private GradleExecuter daemonExecutor() {
+        println("Env: ${System.getenv()}")
         targetDist.executer(temporaryFolder, getBuildContext()).withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts(JVM_OPTS).useOnlyRequestedJvmOpts().requireDaemon()
     }
 }
