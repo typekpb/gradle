@@ -26,7 +26,6 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireIsolatedDaemons()
         executer = toolingApi.createExecuter()
         executer.useOnlyRequestedJvmOpts()
-        executer.withNoExplicitTmpDir()
         settingsFile << "rootProject.name = 'test-build'"
     }
 
@@ -69,12 +68,13 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
         withConnection {
             def build = newBuild()
             build.setJvmArguments(NORMALIZED_BUILD_JVM_OPTS)
+            build.addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
             build.forTasks("help")
             build.run()
         }
     }
 
     private void runBuildViaCLI() {
-        executer.withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")}").withTasks("help").run()
+        executer.withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")} -Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}").withTasks("help").run()
     }
 }

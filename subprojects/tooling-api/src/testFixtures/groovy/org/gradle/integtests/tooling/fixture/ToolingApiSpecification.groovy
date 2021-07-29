@@ -33,6 +33,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.LongRunningOperation
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -88,6 +89,11 @@ abstract class ToolingApiSpecification extends Specification {
     // used reflectively by retry rule
     String getReleasedGradleVersion() {
         return targetDist.version.baseVersion.version
+    }
+
+    private <T> ModelBuilder<T> addUnifiedJvmArguments(ModelBuilder<T> modelBuilder) {
+        modelBuilder.addJvmArguments(NORMALIZED_BUILD_JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
+        return modelBuilder
     }
 
     // reflectively invoked by ToolingApiExecution
