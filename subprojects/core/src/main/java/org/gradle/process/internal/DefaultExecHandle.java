@@ -269,7 +269,10 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                 int index = arg.indexOf("C:\\");
                 if (index != -1) {
                     String filePath = arg.substring(index);
-                    LOGGER.info("Check {}, exist: {}, isFile: {}, isDir: {}", filePath, new File(filePath).exists(), new File(filePath).isFile(), new File(filePath).isDirectory());
+                    File f = new File(filePath);
+                    File p = f.getParentFile();
+                    LOGGER.info("Check {}, exist: {}, isFile: {}, isDir: {}", filePath, f.exists(), f.isFile(), f.isDirectory());
+                    LOGGER.info("Check {}, exist: {}, isFile: {}, isDir: {}", p.getAbsolutePath(), p.exists(), p.isFile(), p.isDirectory());
                 }
             });
 //            try {
