@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -37,6 +39,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppComp
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
+import org.gradle.process.internal.DefaultExecHandle;
 
 import static org.gradle.internal.FileUtils.withExtension;
 
@@ -112,6 +115,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     public <T> T get(Class<T> toolType) {
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
+    private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);
 
     @Override
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
@@ -122,6 +126,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
             return CompilerUtil.castCompiler(createCppPCHCompiler());
         }
         if (CCompileSpec.class.isAssignableFrom(spec)) {
+            LOGGER.info("Create C compiler {}", spec.getClass());
             return CompilerUtil.castCompiler(createCCompiler());
         }
         if (CPCHCompileSpec.class.isAssignableFrom(spec)) {
@@ -143,6 +148,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
             return CompilerUtil.castCompiler(createWindowsResourceCompiler());
         }
         if (AssembleSpec.class.isAssignableFrom(spec)) {
+            LOGGER.info("Create Assembler {}", spec.getClass());
             return CompilerUtil.castCompiler(createAssembler());
         }
         if (LinkerSpec.class.isAssignableFrom(spec)) {
