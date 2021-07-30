@@ -1089,8 +1089,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             if (tmpDir == null) {
                 tmpDir = getDefaultTmpDir();
             }
+            System.out.println("TMPDIR: " + tmpDir.getAbsolutePath());
             String tmpDirPath = tmpDir.createDir().getAbsolutePath();
             if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
+                System.out.println("set java.io.tmpdir: " + tmpDirPath);
                 properties.put("java.io.tmpdir", tmpDirPath);
             }
         }

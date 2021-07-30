@@ -38,7 +38,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private <T> ModelBuilder<T> addNormalizedJvmArguments(ModelBuilder<T> modelBuilder) {
-        modelBuilder.addJvmArguments(JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
+        modelBuilder.addJvmArguments(JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().createDir().absolutePath}")
         return modelBuilder
     }
 
