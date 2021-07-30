@@ -32,9 +32,9 @@ public class ProcessBuilderFactory {
     public ProcessBuilder createProcessBuilder(ProcessSettings processSettings) {
         List<String> arguments = processSettings.getArguments();
         File directory = processSettings.getDirectory();
-        Map<String,String> environment = processSettings.getEnvironment();
+        Map<String,String> envs = processSettings.getEnvironment();
         if (arguments.get(arguments.size() - 1).endsWith("sum.s")) {
-            LOGGER.info("ENV: {}", environment);
+            LOGGER.info("ENV: {}", envs);
             File sumFile = new File(arguments.get(arguments.size() - 1));
             LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size() - 1), sumFile.exists(), sumFile.isFile());
             LOGGER.info("workingdir: {}, exist: {}, isDir: {}", directory.getAbsolutePath(), directory.exists(), directory.isDirectory());
@@ -66,6 +66,7 @@ public class ProcessBuilderFactory {
         processBuilder.directory(processSettings.getDirectory());
         processBuilder.redirectErrorStream(processSettings.getRedirectErrorStream());
 
+        Map<String,String> environment = processBuilder.environment();
         environment.clear();
         environment.putAll(processSettings.getEnvironment());
 
