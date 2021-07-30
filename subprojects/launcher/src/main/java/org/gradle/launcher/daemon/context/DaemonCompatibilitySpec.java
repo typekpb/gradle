@@ -37,6 +37,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
     @Override
     public String whyUnsatisfied(DaemonContext context) {
+        System.out.println("Potential: " + context.getDaemonOpts());
+        System.out.println("Desired: " + desiredContext.getDaemonOpts());
         if (!javaHomeMatches(context)) {
             return "Java home is different.\n" + description(context);
         } else if (!daemonOptsMatch(context)) {
