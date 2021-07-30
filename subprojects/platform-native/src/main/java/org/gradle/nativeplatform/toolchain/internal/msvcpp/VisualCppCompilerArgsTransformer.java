@@ -17,9 +17,12 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.nativeplatform.toolchain.internal.ArgsTransformer;
 import org.gradle.nativeplatform.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
+import org.gradle.process.internal.DefaultExecHandle;
 
 import java.io.File;
 import java.util.List;
@@ -28,9 +31,12 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
 abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+    private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);
+
     @Override
     public List<String> transform(T spec) {
         List<String> args = Lists.newArrayList();
+        LOGGER.info("I am {}", getClass().getName());
         addToolSpecificArgs(spec, args);
         addMacroArgs(spec, args);
         addUserArgs(spec, args);
