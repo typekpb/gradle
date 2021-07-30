@@ -82,6 +82,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
         sync.waitForAllPendingCalls()
         toolingApi.daemons.daemon.assertBusy()
 
+        assert false
         when:
         toolingApi.close()
 
