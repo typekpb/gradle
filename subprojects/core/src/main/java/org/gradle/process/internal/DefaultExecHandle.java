@@ -120,10 +120,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private final BuildCancellationToken buildCancellationToken;
 
-    DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
-                      Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
-                      List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
-                      Executor executor, BuildCancellationToken buildCancellationToken) {
+    DefaultExecHandle(
+        String displayName, File directory, String command, List<String> arguments,
+        Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
+        List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
+        Executor executor, BuildCancellationToken buildCancellationToken
+    ) {
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
@@ -254,8 +256,13 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     @Override
     public ExecHandle start() {
+        if (arguments.get(arguments.size() - 1).endsWith("sum.s")) {
+            File sumFile = new File(arguments.get(arguments.size() - 1));
+            LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size()-1), sumFile.exists(), sumFile.isDirectory());
+            LOGGER.info("workingdir: {}, exist: {}, isDir: {}", directory.getAbsolutePath(), directory.exists(), directory.isDirectory());
+        }
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
-                displayName, directory, command, ARGUMENT_JOINER.join(arguments));
+            displayName, directory, command, ARGUMENT_JOINER.join(arguments));
         lock.lock();
         try {
             if (!stateIn(ExecHandleState.INIT)) {
