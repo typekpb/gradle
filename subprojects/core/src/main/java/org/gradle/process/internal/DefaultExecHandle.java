@@ -262,6 +262,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     @Override
     public ExecHandle start() {
         if (arguments.get(arguments.size() - 1).endsWith("sum.s")) {
+            LOGGER.info("ENV: {}", environment);
             File sumFile = new File(arguments.get(arguments.size() - 1));
             LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size() - 1), sumFile.exists(), sumFile.isFile());
             LOGGER.info("workingdir: {}, exist: {}, isDir: {}", directory.getAbsolutePath(), directory.exists(), directory.isDirectory());
