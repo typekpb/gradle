@@ -258,8 +258,9 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     public ExecHandle start() {
         if (arguments.get(arguments.size() - 1).endsWith("sum.s")) {
             File sumFile = new File(arguments.get(arguments.size() - 1));
-            LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size()-1), sumFile.exists(), sumFile.isDirectory());
+            LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size()-1), sumFile.exists(), sumFile.isFile());
             LOGGER.info("workingdir: {}, exist: {}, isDir: {}", directory.getAbsolutePath(), directory.exists(), directory.isDirectory());
+
         }
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
             displayName, directory, command, ARGUMENT_JOINER.join(arguments));
