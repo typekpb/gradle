@@ -38,7 +38,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private <T> ModelBuilder<T> addNormalizedJvmArguments(ModelBuilder<T> modelBuilder) {
-        modelBuilder.addJvmArguments(JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().createDir().absolutePath}")
+        modelBuilder.addJvmArguments(JVM_OPTS).addJvmArguments("-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
         return modelBuilder
     }
 
@@ -82,7 +82,6 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
         sync.waitForAllPendingCalls()
         toolingApi.daemons.daemon.assertBusy()
 
-        assert false
         when:
         toolingApi.close()
 
@@ -130,6 +129,11 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
     }
 
     private GradleExecuter daemonExecutor() {
-        targetDist.executer(temporaryFolder, getBuildContext()).withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts(JVM_OPTS).useOnlyRequestedJvmOpts().requireDaemon()
+        targetDist.executer(temporaryFolder, getBuildContext())
+            .withDaemonBaseDir(toolingApi.daemonBaseDir)
+            .withTmpDir(buildContext.getTmpDir())
+            .withBuildJvmOpts(JVM_OPTS)
+            .useOnlyRequestedJvmOpts()
+            .requireDaemon()
     }
 }

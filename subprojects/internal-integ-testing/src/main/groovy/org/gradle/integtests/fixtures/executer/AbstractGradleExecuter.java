@@ -1474,6 +1474,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withTmpDir(File tmpDir) {
+        if (tmpDir instanceof TestFile) {
+            this.tmpDir = (TestFile) tmpDir;
+        } else {
+            this.tmpDir = new TestFile(tmpDir);
+        }
+        return this;
+    }
+
+    @Override
     public GradleExecuter withNoExplicitNativeServicesDir() {
         noExplicitNativeServicesDir = true;
         return this;

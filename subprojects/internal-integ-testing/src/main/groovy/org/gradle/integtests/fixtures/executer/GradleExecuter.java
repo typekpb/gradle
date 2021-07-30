@@ -190,6 +190,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withBuildCacheEnabled();
 
     /**
+     * Set -Djava.io.tmpdir explicitly. Some tests require this to keep daemon compatibility
+     */
+    GradleExecuter withTmpDir(File tmpDir);
+
+    /**
      * Don't set temp folder explicitly.
      */
     GradleExecuter withNoExplicitTmpDir();
