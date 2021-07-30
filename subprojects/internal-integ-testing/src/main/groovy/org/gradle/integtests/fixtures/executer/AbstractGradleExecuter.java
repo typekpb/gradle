@@ -359,6 +359,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
+        if (tmpDir != null) {
+            executer.withTmpDir(tmpDir);
+        }
         if (noExplicitTmpDir) {
             executer.withNoExplicitTmpDir();
         }
