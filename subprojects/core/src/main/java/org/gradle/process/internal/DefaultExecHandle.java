@@ -29,7 +29,12 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
 import javax.annotation.Nullable;
+import java.awt.image.ImagingOpException;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -258,9 +263,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     public ExecHandle start() {
         if (arguments.get(arguments.size() - 1).endsWith("sum.s")) {
             File sumFile = new File(arguments.get(arguments.size() - 1));
-            LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size()-1), sumFile.exists(), sumFile.isFile());
+            LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size() - 1), sumFile.exists(), sumFile.isFile());
             LOGGER.info("workingdir: {}, exist: {}, isDir: {}", directory.getAbsolutePath(), directory.exists(), directory.isDirectory());
-
+            try {
+                List<String> lines = Files.readAllLines(sumFile.toPath());
+                lines = new ArrayList<>(lines);
+                lines.add("");
+                Files.write(sumFile.toPath(), lines);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
             displayName, directory, command, ARGUMENT_JOINER.join(arguments));
