@@ -265,14 +265,21 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             File sumFile = new File(arguments.get(arguments.size() - 1));
             LOGGER.info("Check sum.s: {}, exist: {}, isFile: {}", arguments.get(arguments.size() - 1), sumFile.exists(), sumFile.isFile());
             LOGGER.info("workingdir: {}, exist: {}, isDir: {}", directory.getAbsolutePath(), directory.exists(), directory.isDirectory());
-            try {
-                List<String> lines = Files.readAllLines(sumFile.toPath());
-                lines = new ArrayList<>(lines);
-                lines.add("");
-                Files.write(sumFile.toPath(), lines);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            arguments.forEach(arg -> {
+                int index = arg.indexOf("C:\\");
+                if (index != -1) {
+                    String filePath = arg.substring(index);
+                    LOGGER.info("Check {}, exist: {}, isFile: {}, isDir: {}", filePath, new File(filePath).exists(), new File(filePath).isFile(), new File(filePath).isDirectory());
+                }
+            });
+//            try {
+//                List<String> lines = Files.readAllLines(sumFile.toPath());
+//                lines = new ArrayList<>(lines);
+//                lines.add("");
+//                Files.write(sumFile.toPath(), lines);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
         }
         LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
             displayName, directory, command, ARGUMENT_JOINER.join(arguments));
