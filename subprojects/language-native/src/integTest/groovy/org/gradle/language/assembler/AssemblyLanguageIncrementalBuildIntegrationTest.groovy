@@ -66,6 +66,8 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         args("--debug")
         run "installMainExecutable"
 
+        assert false
+
         install = installation("build/install/main")
     }
 
