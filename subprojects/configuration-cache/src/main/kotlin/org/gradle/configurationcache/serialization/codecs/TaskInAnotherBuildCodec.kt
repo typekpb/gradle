@@ -23,6 +23,7 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.execution.plan.TaskInAnotherBuild
+import org.gradle.execution.plan.TaskNode
 
 
 class TaskInAnotherBuildCodec(
@@ -42,7 +43,8 @@ class TaskInAnotherBuildCodec(
         return TaskInAnotherBuild.of(
             taskPath,
             targetBuild,
-            includedTaskGraph
+            includedTaskGraph,
+            TaskNode.UNKNOWN_ORDINAL
         )
     }
 }

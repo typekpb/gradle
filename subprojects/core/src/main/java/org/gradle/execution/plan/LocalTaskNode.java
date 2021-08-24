@@ -47,7 +47,8 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext) {
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, int ordinal) {
+        super(ordinal);
         this.task = task;
         this.validationContext = workValidationContext;
     }
@@ -127,6 +128,9 @@ public class LocalTaskNode extends TaskNode {
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
+            if (targetNode instanceof TaskNode) {
+                ((TaskNode) targetNode).maybeSetOrdinal(getOrdinal());
+            }
             processHardSuccessor.execute(targetNode);
         }
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
@@ -187,7 +191,7 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void resolveMutations() {
+    public void resolveMutations(boolean finalize) {
         final LocalTaskNode taskNode = this;
         final TaskInternal task = getTask();
         final MutationInfo mutations = getMutationInfo();
@@ -215,7 +219,7 @@ public class LocalTaskNode extends TaskNode {
             throw new TaskExecutionException(task, e);
         }
 
-        mutations.resolved = true;
+        mutations.finalized = finalize;
 
         if (!mutations.destroyablePaths.isEmpty()) {
             if (mutations.hasOutputs) {

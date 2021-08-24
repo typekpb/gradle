@@ -499,7 +499,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
 
         then:
         output.contains("Deleting stale output file: ${original.parentFile.absolutePath}")
-        skipped ':backup'
+        executedAndNotSkipped(':backup')
         executedAndNotSkipped(':restore')
         original.text == backup.text
         original.text == "Original"

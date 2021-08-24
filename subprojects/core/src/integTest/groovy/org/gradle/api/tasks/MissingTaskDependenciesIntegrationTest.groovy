@@ -59,6 +59,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         succeeds("producer", "consumer")
 
         when:
+        expectMissingDependencyDeprecation(":producer", ":consumer", file(consumedLocation))
         expectMissingDependencyDeprecation(":producer", ":consumer", file(producerOutput ?: producedLocation))
         then:
         succeeds("consumer", "producer")
@@ -323,6 +324,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":producer", ":consumer")
 
         when:
+        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory)
         expectMissingDependencyDeprecation(":producer", ":consumer", file("build/problematic/output.txt"))
         run("consumer", "producer")
         then:

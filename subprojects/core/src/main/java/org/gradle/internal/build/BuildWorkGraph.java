@@ -16,6 +16,12 @@
 
 package org.gradle.internal.build;
 
+<<<<<<< HEAD
+=======
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.composite.internal.TaskIdentifier;
+
+>>>>>>> c239633da6e... Pass task order to included builds
 import java.util.Collection;
 import java.util.function.Consumer;
 

@@ -35,6 +35,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URISyntaxException;
@@ -64,13 +65,18 @@ public class TaskNodeFactory {
         return nodes.keySet();
     }
 
-    public TaskNode getOrCreateNode(Task task) {
+    @Nullable
+    public TaskNode getNode(Task task) {
+        return nodes.get(task);
+    }
+
+    public TaskNode getOrCreateNode(Task task, int ordinal) {
         TaskNode node = nodes.get(task);
         if (node == null) {
             if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
+                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)), ordinal);
             } else {
-                node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
+                node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController, ordinal);
             }
             nodes.put(task, node);
         }

@@ -40,6 +40,7 @@ import static org.gradle.util.internal.WrapUtil.toList
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    int order = 0
 
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
@@ -97,9 +98,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task d = task("d")
 
         when:
-        executionPlan.addEntryTasks(toList(c, b))
-        executionPlan.addEntryTasks(toList(d, a))
-        executionPlan.determineExecutionPlan()
+        addToGraph(toList(c, b))
+        addToGraphAndPopulate(toList(d, a))
 
         then:
         executes(b, c, a, d)
@@ -131,9 +131,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task e = task("e", dependsOn: [b, d])
 
         when:
-        executionPlan.addEntryTasks(toList(c))
-        executionPlan.addEntryTasks(toList(e))
-        executionPlan.determineExecutionPlan()
+        addToGraph(toList(c))
+        addToGraphAndPopulate(toList(e))
 
         then:
         executes(a, b, c, d, e)
@@ -159,9 +158,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task c = task("c", (orderingRule): [b])
 
         when:
-        executionPlan.addEntryTasks([c])
-        executionPlan.addEntryTasks([b])
-        executionPlan.determineExecutionPlan()
+        addToGraph([c])
+        addToGraphAndPopulate([b])
 
         then:
         executes(a, b, c)
@@ -324,9 +322,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task finalized = task("finalized", finalizedBy: [finalizer], didWork: false)
 
         when:
-        executionPlan.addEntryTasks([finalized])
-        executionPlan.addEntryTasks([dependsOnFinalizer])
-        executionPlan.determineExecutionPlan()
+        addToGraph([finalized])
+        addToGraphAndPopulate([dependsOnFinalizer])
 
         then:
         executes(finalized, finalizerDependency, finalizer, dependsOnFinalizer)
@@ -492,11 +489,10 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task c = task("c", dependsOn: [b])
         Task d = task("d", dependsOn: [c])
         relationships(a, mustRunAfter: [c])
-        executionPlan.addEntryTasks([d])
+        addToGraph([d])
 
         when:
-        executionPlan.addEntryTasks([a])
-        executionPlan.determineExecutionPlan()
+        addToGraphAndPopulate([a])
 
         then:
         def e = thrown CircularReferenceException
@@ -854,8 +850,12 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return node
     }
 
+    private void addToGraph(List tasks) {
+        executionPlan.addEntryTasks(tasks, order++)
+    }
+
     private void addToGraphAndPopulate(List tasks) {
-        executionPlan.addEntryTasks(tasks)
+        addToGraph(tasks)
         executionPlan.determineExecutionPlan()
     }
 

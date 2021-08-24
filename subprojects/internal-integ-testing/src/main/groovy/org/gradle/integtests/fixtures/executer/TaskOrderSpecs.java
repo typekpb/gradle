@@ -89,7 +89,7 @@ public class TaskOrderSpecs {
 
         @Override
         public Set<String> getTasks() {
-            Set<String> tasks = Sets.newHashSet();
+            Set<String> tasks = Sets.newLinkedHashSet();
             for (Object constraint : constraints) {
                 if (constraint instanceof String) {
                     tasks.add((String) constraint);

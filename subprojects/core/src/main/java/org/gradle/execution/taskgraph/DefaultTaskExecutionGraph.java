@@ -75,6 +75,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private ExecutionPlan executionPlan;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
+    private int order = 0;
 
     public DefaultTaskExecutionGraph(
         PlanExecutor planExecutor,
@@ -110,6 +111,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void populate(ExecutionPlan plan) {
         executionPlan = plan;
         allTasks = null;
+
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
