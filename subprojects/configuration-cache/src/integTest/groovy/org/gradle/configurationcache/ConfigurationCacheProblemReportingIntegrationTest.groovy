@@ -22,16 +22,17 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.jsModelForReportDir
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Ignore("wip: Currently failing on CI for unknown reason")
     def "report file is content addressable"() {
         given:
         settingsFile << """
@@ -47,7 +48,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
                 doFirst { println(project.name) }
             }
         """
-        def reportDir = {
+        Closure<TestFile> reportDir = {
             resolveConfigurationCacheReportDirectory(testDirectory.file('out'), failure.error)
         }
 
@@ -57,6 +58,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         def reportDir1 = reportDir()
         reportDir1?.isDirectory()
+        def reportDir1Model = jsModelForReportDir(reportDir1)
 
         when:
         configurationCacheFails 'alsoBroken'
@@ -64,6 +66,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         def reportDir2 = reportDir()
         reportDir2?.isDirectory()
+        def reportDir2Model = jsModelForReportDir(reportDir2)
         reportDir2 != reportDir1
 
         when:
@@ -71,6 +74,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         def reportDir3 = reportDir()
+        def reportDir3Model = jsModelForReportDir(reportDir3)
+        reportDir3Model == reportDir1Model
         reportDir3 == reportDir1
 
         when:
@@ -78,6 +83,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         then:
         def reportDir4 = reportDir()
+        def reportDir4Model = jsModelForReportDir(reportDir4)
+        reportDir4Model == reportDir2Model
         reportDir4 == reportDir2
     }
 
