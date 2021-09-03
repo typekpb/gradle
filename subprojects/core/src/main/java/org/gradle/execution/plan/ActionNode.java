@@ -72,7 +72,7 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    public void resolveMutations(boolean finalize) {
+    public void resolveMutations() {
         // Assume has no outputs that can be destroyed or that overlap with another node
     }
 

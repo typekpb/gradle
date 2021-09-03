@@ -175,7 +175,12 @@ public class TaskInAnotherBuild extends TaskNode {
     }
 
     @Override
-    public void resolveMutations(boolean finalize) {
+    public void resolveMutations() {
+        // Assume for now that no task in the consuming build will destroy the outputs of this task or overlaps with this task
+    }
+
+    @Override
+    public void resolveKnownOutputAndDestroyableMutations() {
         // Assume for now that no task in the consuming build will destroy the outputs of this task or overlaps with this task
     }
 

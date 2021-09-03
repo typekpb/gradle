@@ -94,7 +94,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     }
 
     @Override
-    public void resolveMutations(boolean finalize) {
+    public void resolveMutations() {
         // Assume for now that no other node is going to destroy the transform outputs, or overlap with them
     }
 
