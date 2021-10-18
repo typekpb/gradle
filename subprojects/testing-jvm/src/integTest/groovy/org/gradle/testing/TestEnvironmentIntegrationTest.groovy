@@ -106,7 +106,7 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.JUnitTest')
+        result.assertTestClassesExecuted('org.gradle.JUnitTest1')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
     }
 }
