@@ -73,6 +73,9 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
             try {
+                if (true) {
+                    throw new IllegalStateException("Deliberate!");
+                }
                 return wrapInOperation(
                     "Provisioning toolchain " + destinationFile.getName(),
                     () -> provisionJdk(spec, destinationFile));
