@@ -24,16 +24,17 @@ import java.util.function.Predicate;
 /**
  * Specifies how a fingerprinter should handle directories that are found in a filecollection.
  */
-public enum DirectorySensitivity {
+public enum DirectorySensitivity{
     /**
      * Whatever the default behavior is for the given fingerprinter.  For some fingerprinters, the
      * default behavior is to fingerprint directories, for others, they ignore directories by default.
      */
-    DEFAULT(snapshot -> true),
+    DEFAULT(snapshot->true),
     /**
      * Ignore directories
      */
-    IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory);
+    IGNORE_DIRECTORIES(snapshot -> snapshot.getType() != FileType.Directory),
+    UNSPECIFIED(snapshot -> { throw new AssertionError("Unspecified must not be used as directory sensitivity"); });
 
     private final Predicate<FileSystemLocationSnapshot> fingerprintCheck;
 
