@@ -75,6 +75,11 @@ abstract class ExtractCheckstyleBuildScanData : AbstractExtractCodeQualityBuildS
 
     override fun extractIssuesFrom(xmlFile: File, basePath: File): List<String> {
         val checkstyle = Jsoup.parse(xmlFile.readText(), "", Parser.xmlParser())
+        if (xmlFile.isFile) {
+            println("Checkstyle: ${xmlFile.readText()}")
+        } else {
+            println("${xmlFile.absolutePath} not exist!")
+        }
         return checkstyle.getElementsByTag("file").flatMap { file ->
             file.getElementsByTag("error").map { error ->
                 val filePath = File(file.attr("name")).relativeTo(basePath).path
