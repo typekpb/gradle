@@ -16,6 +16,11 @@
 
 package org.gradle.internal.classpath
 
+import com.google.common.io.ByteStreams
+import com.google.common.io.CharStreams
+
+import java.util.function.Consumer
+
 class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
     @Override
     protected Properties getMapUnderTestToRead() {
@@ -157,9 +162,55 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         'missing'  | 'someValue'     | null            | false
     }
 
+    def "aggregating method #methodName reports all properties as inputs"() {
+        when:
+        operation.accept(getMapUnderTestToRead())
+
+        then:
+        (1.._) * consumer.accept('existing', 'existingValue')
+        (1.._) * consumer.accept('other', 'otherValue')
+        0 * consumer._
+        where:
+        methodName                                | operation
+        "propertyNames()"                         | op(Properties::propertyNames)
+        "keys()"                                  | op(Properties::keys)
+        "elements()"                              | op(Properties::elements)
+        "replaceAll(BiFunction)"                  | op(p -> p.replaceAll((k, v) -> v))
+        "save(OutputStream, String)"              | op(p -> p.save(ByteStreams.nullOutputStream(), ""))
+        "store(OutputStream, String)"             | op(p -> p.store(ByteStreams.nullOutputStream(), ""))
+        "store(Writer, String)"                   | op(p -> p.store(CharStreams.nullWriter(), ""))
+        "storeToXML(OutputSteam, String)"         | op(p -> p.storeToXML(ByteStreams.nullOutputStream(), ""))
+        "storeToXML(OutputSteam, String, String)" | op(p -> p.storeToXML(ByteStreams.nullOutputStream(), "", "UTF-8"))
+        "list(PrintStream)"                       | op(p -> p.list(new PrintStream(ByteStreams.nullOutputStream())))
+        "list(PrintWriter)"                       | op(p -> p.list(new PrintWriter(ByteStreams.nullOutputStream())))
+        "equals(Object)"                          | op(p -> Objects.equals(p, new Properties()))
+        "hashCode()"                              | op(Properties::hashCode)
+        "stringPropertyNames().iterator()"        | op(p -> p.stringPropertyNames().iterator())
+        "stringPropertyNames().size()"            | op(p -> p.stringPropertyNames().size())
+    }
+
+    def "method #methodName does not report inputs"() {
+        when:
+        operation.accept(getMapUnderTestToRead())
+
+        then:
+        0 * consumer._
+        where:
+        methodName          | operation
+        "toString()"        | op(p -> p.toString())  // Method reference doesn't work there for some reason
+        "clear()"           | op(Properties::clear)
+        "load(Reader)"      | op(p -> p.load(new StringReader("")))
+        "load(InputStream)" | op(p -> p.load(new ByteArrayInputStream(new byte[0])))
+    }
+
     private static Properties propertiesWithContent(Map<String, String> contents) {
         Properties props = new Properties()
         props.putAll(contents)
         return props
+    }
+
+    // Shortcut to have a typed lambda expression in where: block
+    private static Consumer<Properties> op(Consumer<Properties> consumer) {
+        return consumer
     }
 }

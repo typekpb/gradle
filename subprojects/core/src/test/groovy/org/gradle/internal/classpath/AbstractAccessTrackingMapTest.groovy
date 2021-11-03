@@ -20,6 +20,7 @@ import com.google.common.collect.Maps
 import spock.lang.Specification
 
 import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 abstract class AbstractAccessTrackingMapTest extends Specification {
     protected final Map<String, String> innerMap = ['existing': 'existingValue', 'other': 'otherValue']
@@ -83,27 +84,26 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
         0 * consumer._
     }
 
-    def "access to existing element with forEach() is tracked"() {
+    def "aggregating method #methodName reports all map contents as inputs"() {
         when:
-        def iterated = new HashMap<Object, Object>()
-        getMapUnderTestToRead().forEach { k, v -> iterated.put(k, v) }
+        operation.accept(getMapUnderTestToRead())
 
         then:
-        iterated == innerMap
-        1 * consumer.accept('existing', 'existingValue')
-        1 * consumer.accept('other', 'otherValue')
+        (1.._) * consumer.accept('existing', 'existingValue')
+        (1.._) * consumer.accept('other', 'otherValue')
         0 * consumer._
-    }
 
-    def "entrySet() enumeration is tracked"() {
-        when:
-        def result = new HashSet<>(getMapUnderTestToRead().entrySet())
-
-        then:
-        result == innerMap.entrySet()
-        1 * consumer.accept('existing', 'existingValue')
-        1 * consumer.accept('other', 'otherValue')
-        0 * consumer._
+        where:
+        methodName              | operation
+        "forEach()"             | op(m -> m.forEach((k, v) -> { }))
+        "isEmpty()"             | op(m -> m.isEmpty())
+        "size()"                | op(m -> m.size())
+        "hashCode()"            | op(m -> m.hashCode())
+        "equals()"              | op(m -> Objects.equals(m, Collections.emptyMap()))
+        "entrySet().size()"     | op(m -> m.entrySet().size())
+        "entrySet().iterator()" | op(m -> m.entrySet().iterator())
+        "keySet().size()"       | op(m -> m.keySet().size())
+        "keySet().iterator()"   | op(m -> m.keySet().iterator())
     }
 
     def "entrySet() contains(entry(#key, #requestedValue)) and containsAll(entry(#key, #requestedValue)) are tracked"() {
@@ -191,5 +191,10 @@ abstract class AbstractAccessTrackingMapTest extends Specification {
 
     static Map.Entry<String, String> entry(String key, String value) {
         return Maps.immutableEntry(key, value)
+    }
+
+    // Shortcut to have a typed lambda expression in where: block
+    private static Consumer<Map<? super String, ? super String>> op(Consumer<Map<? super String, ? super String>> consumer) {
+        return consumer
     }
 }
