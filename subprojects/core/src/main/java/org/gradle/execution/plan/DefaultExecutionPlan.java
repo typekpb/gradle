@@ -361,13 +361,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         nodeMapping.removeIf(Node::requiresMonitoring);
         executionQueue.addAll(nodeMapping);
 
-        // Create any necessary ordering dependencies so as to honor command line order where possible
-        createNecessaryCommandLineOrderingRules();
-
         for (Node node : executionQueue) {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
         }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
+    }
+
+    @Override
+    public void prepareForExecution() {
+        // Preemptively resolve any mutations that we know about.  We do this so we can detect any overlaps between producers and destroyers
+        // even if their task dependencies have not executed yet.  This allows us to enforce command line order even when a task
+        // has been delayed while waiting on dependencies to finish.  Note that it is technically possible for output and/or
+        // destroyable mutations to change as a result of the execution of dependencies, so this may not be a final or complete
+        // list of mutations.
+        resolveKnownOutputAndDestroyableMutations();
     }
 
     private void maybeRemoveProcessedShouldRunAfterEdge(Deque<GraphEdge> walkedShouldRunAfterEdges, Node node) {
@@ -497,47 +504,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(firstCycle.get(0), writer);
         throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer.toString()));
-    }
-
-    private void createNecessaryCommandLineOrderingRules() {
-        // First resolve all mutations that we know about
-        resolveKnownOutputAndDestroyableMutations();
-
-        // Add any ordering rules for each node
-        executionQueue.forEach(this::createNecessaryCommandLineOrderingRules);
-    }
-
-    private void createNecessaryCommandLineOrderingRules(Node node) {
-        if (node instanceof TaskNode) {
-            // If this is a destroyer task, compare its destroyed paths to producers of those paths
-            if (!node.getMutationInfo().destroyablePaths.isEmpty()) {
-                for (String destroyablePath : node.getMutationInfo().destroyablePaths) {
-                    ImmutableSet<Node> producersThatOverlap = outputHierarchy.getNodesAccessing(destroyablePath);
-                    producersThatOverlap.forEach(n -> addOrderingRuleIfTaskShouldRunEarlier((TaskNode) node, n));
-                }
-            }
-
-            // If this is a producer task, compare its produced paths to destroyers of those paths
-            if (!node.getMutationInfo().outputPaths.isEmpty()) {
-                for (String outputPath : node.getMutationInfo().outputPaths) {
-                    ImmutableSet<Node> destroyersThatOverlap = destroyableHierarchy.getNodesAccessing(outputPath);
-                    destroyersThatOverlap.forEach(n -> addOrderingRuleIfTaskShouldRunEarlier((TaskNode) node, n));
-                }
-            }
-        }
-    }
-
-    // Creates a dependency if node2 was added to the task graph earlier than node1 and node1 has not been explicitly or implicitly ordered before node2
-    private void addOrderingRuleIfTaskShouldRunEarlier(TaskNode node1, Node node2) {
-        if (node2 instanceof TaskNode && node1.hasHigherOrderThan((TaskNode) node2)) {
-            if (taskDependencyBetween(node2, node1)) {
-                // TODO - this is a cycle
-                return;
-            }
-
-            // node1 should run after node2
-            node1.addMustSuccessor((TaskNode) node2);
-        }
     }
 
     @Override
@@ -671,8 +637,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
             return true;
-        } else if (doesDestroyNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
+        } else if (destroysNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
+            return true;
+        } else if (destroysOutputsOfATaskThatShouldRunEarlier(node)) {
+            LOGGER.debug("Node {} destroys outputs of a task that should run before it", node);
+            return true;
+        } else if (producesOutputsThatAreDestroyedByATaskThatShouldRunEarlier(node)) {
+            LOGGER.debug("Node {} produces outputs that are destroyed by a task that should run before it", node);
             return true;
         }
         return false;
@@ -783,7 +755,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return false;
     }
 
-    private boolean doesDestroyNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
+    private boolean destroysNotYetConsumedOutputOfAnotherNode(Node destroyer, Set<String> destroyablePaths) {
         if (destroyablePaths.isEmpty()) {
             return false;
         }
@@ -807,6 +779,47 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         }
         return false;
+    }
+
+    private boolean destroysOutputsOfATaskThatShouldRunEarlier(Node node) {
+        if (node instanceof TaskNode) {
+            // If this is a destroyer task, compare its destroyed paths to producers of those paths
+            if (!node.getMutationInfo().destroyablePaths.isEmpty()) {
+                for (String destroyablePath : node.getMutationInfo().destroyablePaths) {
+                    ImmutableSet<Node> producersThatOverlap = outputHierarchy.getNodesAccessing(destroyablePath);
+                    if (producersThatOverlap.stream().anyMatch(n -> taskShouldRunBefore((TaskNode) node, n))) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean producesOutputsThatAreDestroyedByATaskThatShouldRunEarlier(Node node) {
+        if (node instanceof TaskNode) {
+            // If this is a producer task, compare its produced paths to destroyers of those paths
+            if (!node.getMutationInfo().outputPaths.isEmpty()) {
+                for (String outputPath : node.getMutationInfo().outputPaths) {
+                    ImmutableSet<Node> destroyersThatOverlap = destroyableHierarchy.getNodesAccessing(outputPath);
+                    if (destroyersThatOverlap.stream().anyMatch(n -> taskShouldRunBefore((TaskNode) node, n))) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Returns true if node2 should run before task1 because node2 was added to the task graph before node1 and
+    // node1 has not been explicitly or implicitly ordered before node2
+    private boolean taskShouldRunBefore(TaskNode node1, Node node2) {
+        return !node2.isComplete() // if node2 has already executed, it doesn't matter
+            && node2 instanceof TaskNode
+            && node1.hasHigherOrderThan((TaskNode) node2) // node2 was added to the graph before node1
+            && !taskDependencyBetween(node2, node1); // node2 does not have an explicit or transitive dependency on node1
     }
 
     // returns true if node1 has a direct or transitive dependency on node2

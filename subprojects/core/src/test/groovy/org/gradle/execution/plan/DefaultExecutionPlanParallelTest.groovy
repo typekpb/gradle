@@ -906,6 +906,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     private void addToGraphAndPopulate(Task... tasks) {
         addToGraph(tasks)
         executionPlan.determineExecutionPlan()
+        executionPlan.prepareForExecution()
     }
 
     TestFile file(String path) {

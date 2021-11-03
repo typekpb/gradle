@@ -84,6 +84,7 @@ class DefaultPlanExecutorTest extends Specification {
 
         then:
         1 * executionPlan.getDisplayName() >> "task plan"
+        1 * executionPlan.prepareForExecution()
         1 * executorFactory.create(_) >> Mock(ManagedExecutor)
         1 * cancellationHandler.isCancellationRequested() >> false
         1 * executionPlan.hasNodesRemaining() >> true

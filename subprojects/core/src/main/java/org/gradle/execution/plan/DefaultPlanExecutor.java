@@ -67,6 +67,7 @@ public class DefaultPlanExecutor implements PlanExecutor {
     public void process(ExecutionPlan executionPlan, Collection<? super Throwable> failures, Action<Node> nodeExecutor) {
         ManagedExecutor executor = executorFactory.create("Execution worker for '" + executionPlan.getDisplayName() + "'");
         try {
+            executionPlan.prepareForExecution();
             WorkerLease currentWorkerLease = workerLeaseService.getCurrentWorkerLease();
             startAdditionalWorkers(executionPlan, nodeExecutor, executor);
             new ExecutorWorker(executionPlan, nodeExecutor, currentWorkerLease, cancellationToken, coordinationService, workerLeaseService).run();

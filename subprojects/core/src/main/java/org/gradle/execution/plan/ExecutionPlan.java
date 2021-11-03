@@ -87,6 +87,10 @@ public interface ExecutionPlan extends Describable {
         }
 
         @Override
+        public void prepareForExecution() {
+        }
+
+        @Override
         public Set<Task> getTasks() {
             return Collections.emptySet();
         }
@@ -166,6 +170,8 @@ public interface ExecutionPlan extends Describable {
     void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
 
     void determineExecutionPlan();
+
+    void prepareForExecution();
 
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
