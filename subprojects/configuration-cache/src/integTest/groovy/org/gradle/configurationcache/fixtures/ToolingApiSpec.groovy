@@ -21,7 +21,6 @@ import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.Usage
 import org.gradle.api.provider.Property
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
