@@ -16,9 +16,40 @@
 
 package gradlebuild.testcleanup.extension
 
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.services.BuildServiceParameters
+import java.io.File
 
 
-abstract class TestFileCleanUpExtension {
-    abstract val reportOnly: Property<Boolean>
+interface TestFileCleanUpRootExtension : BuildServiceParameters {
+    val projectExtensions: MapProperty<String, TestFileCleanUpExtension>
+    val rootBuildDir: DirectoryProperty
+    val cleanupRunnerStep: Property<Boolean>
+
+    /**
+     * The mapping task path to project path
+     */
+    val relevantTaskPathToProjectPath: MapProperty<String, String>
+
+    /**
+     * Key is the path of a task, value is the possible report dirs it generates.
+     */
+    val taskPathToGenericHtmlReports: MapProperty<String, List<File>>
+    val taskPathToAttachedReports: MapProperty<String, List<File>>
+    val taskPathToCustomReports: MapProperty<String, List<File>>
+    val taskPathToTDTraceJsons: MapProperty<String, List<File>>
+
+    /**
+     * Key is the path of the test, value is Test.binaryResultsDir
+     */
+    val testPathToBinaryResultsDirs: MapProperty<String, File>
+}
+
+
+interface TestFileCleanUpExtension {
+    val projectName: Property<String>
+    val projectBuildDir: DirectoryProperty
+    val reportOnly: Property<Boolean>
 }
