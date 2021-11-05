@@ -25,5 +25,5 @@ import org.gradle.api.provider.MapProperty
  * to the build service.
  */
 interface TestFilesCleanupBuildServiceRootExtension {
-    val projectExtensions: MapProperty<String, TestFilesCleanupBuildServiceProjectExtension>
+    val projectStates: MapProperty<String, TestFilesCleanupProjectState>
 }

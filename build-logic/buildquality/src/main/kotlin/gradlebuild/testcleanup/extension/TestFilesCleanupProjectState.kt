@@ -21,10 +21,10 @@ import org.gradle.api.provider.Property
 
 
 /**
- * An extension to work with {@see TestFilesCleanupService} and {@see TestFilesCleanupServiceRootExtension}.
+ * Works with {@see TestFilesCleanupService} and {@see TestFilesCleanupServiceRootExtension}.
  * It collects states to be used in the build service for each project.
  */
-interface TestFilesCleanupBuildServiceProjectExtension : TestFileCleanUpExtension {
+interface TestFilesCleanupProjectState : TestFileCleanUpExtension {
     val projectName: Property<String>
     val projectBuildDir: DirectoryProperty
 }

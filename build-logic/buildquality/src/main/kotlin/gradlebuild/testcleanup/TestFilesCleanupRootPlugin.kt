@@ -43,7 +43,7 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
         project.gradle.taskGraph.whenReady {
             val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
                 parameters.rootBuildDir.set(project.buildDir)
-                parameters.projectExtensions.putAll(globalExtension.projectExtensions)
+                parameters.projectStates.putAll(globalExtension.projectStates)
                 parameters.cleanupRunnerStep.set(this@whenReady.allTasks.filterIsInstance<KillLeakingJavaProcesses>().isNotEmpty())
 
                 val allTasks = this@whenReady.allTasks
