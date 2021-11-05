@@ -116,7 +116,7 @@ abstract class TestFilesCleanupService @Inject constructor(
         get() = parameters.cleanupRunnerStep.get()
 
     override fun onFinish(event: FinishEvent) {
-        if (event is TaskFinishEvent && relevantTaskPathToProjectPath.contains(event.descriptor.taskPath)) {
+        if (event is TaskFinishEvent && relevantTaskPathToProjectPath.containsKey(event.descriptor.taskPath)) {
             val taskPath = event.descriptor.taskPath
             when (event.result) {
                 is TaskSuccessResult -> {
