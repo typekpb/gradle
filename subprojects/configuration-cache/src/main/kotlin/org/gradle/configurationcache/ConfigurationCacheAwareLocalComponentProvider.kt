@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 
+
 class ConfigurationCacheAwareLocalComponentProvider(
     private val delegates: List<LocalComponentProvider>
 ) : LocalComponentProvider {
