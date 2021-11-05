@@ -246,6 +246,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Nullable
         @Override
         public ProjectState getParent() {
+            return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
+        }
+
+        @Nullable
+        @Override
+        public ProjectState getBuildParent() {
             if (descriptor.getParent() != null) {
                 // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
                 // Ideally they would be exactly the same, always
@@ -296,7 +302,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                     throw new IllegalStateException(String.format("The project object for project %s has already been attached.", getIdentityPath()));
                 }
 
-                ProjectState parent = getParent();
+                ProjectState parent = getBuildParent();
                 ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
                 this.project = projectFactory.createProject(owner.getMutableModel(), descriptor, this, parentModel, selfClassLoaderScope, baseClassLoaderScope);
             }
@@ -315,7 +321,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         @Override
         public void ensureConfigured() {
             // Need to configure intermediate parent projects for configure-on-demand
-            ProjectState parent = getParent();
+            ProjectState parent = getBuildParent();
             if (parent != null) {
                 parent.ensureConfigured();
             }
