@@ -182,8 +182,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private Property<Object> status;
 
-    private final Map<String, Project> childProjects = Maps.newTreeMap();
-
     private List<String> defaultTasks = new ArrayList<>();
 
     private final ProjectStateInternal state;
@@ -490,6 +488,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
+        Map<String, Project> childProjects = Maps.newTreeMap();
+        for (ProjectState project : owner.getChildProjects()) {
+            childProjects.put(project.getName(), project.getMutableModel());
+        }
         return childProjects;
     }
 
@@ -782,11 +784,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public void addChildProject(ProjectInternal childProject) {
-        childProjects.put(childProject.getName(), childProject);
-    }
-
-    @Override
     public File getProjectDir() {
         return projectDir;
     }
@@ -808,8 +805,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void evaluationDependsOnChildren() {
-        for (Project project : childProjects.values()) {
-            DefaultProject defaultProjectToEvaluate = (DefaultProject) project;
+        for (ProjectState project : owner.getChildProjects()) {
+            ProjectInternal defaultProjectToEvaluate = project.getMutableModel();
             evaluationDependsOn(defaultProjectToEvaluate);
         }
     }
