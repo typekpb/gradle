@@ -45,7 +45,7 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     BuildState getOwner();
 
     /**
-     * Returns the parent of this project in the project tree. Note that this isn't the same as {@link Project#getParent()}.
+     * Returns the parent of this project in the project tree, as per {@link Project#getParent()}.
      */
     @Nullable
     ProjectState getParent();
@@ -87,6 +87,8 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
 
     /**
      * Configures the mutable model for this project, if not already.
+     *
+     * May also configure the parent of this project.
      */
     void ensureConfigured();
 
