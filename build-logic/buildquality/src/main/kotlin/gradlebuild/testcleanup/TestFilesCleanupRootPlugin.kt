@@ -21,7 +21,7 @@ import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
-import gradlebuild.testcleanup.extension.TestFileCleanUpRootExtension
+import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -39,7 +39,7 @@ import java.io.File
 class TestFilesCleanupRootPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         require(project.rootProject == project) { "This plugin should be applied to root project!" }
-        val globalExtension = project.extensions.create<TestFileCleanUpRootExtension>("testFilesCleanupRoot")
+        val globalExtension = project.extensions.create<TestFilesCleanupBuildServiceRootExtension>("testFilesCleanupRoot")
         project.gradle.taskGraph.whenReady {
             val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
                 parameters.rootBuildDir.set(project.buildDir)

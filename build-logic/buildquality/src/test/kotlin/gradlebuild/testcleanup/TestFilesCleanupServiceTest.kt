@@ -202,6 +202,7 @@ class TestFilesCleanupServiceTest {
         assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
         assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
         result.output.assertContains("failed-report-with-leftover/build/tmp/test files/leftover")
+        result.output.assertContains("failed-test-with-leftover/build/tmp/test files/leftover")
 
         assertArchivedFilesSeen(
             "report-failed-test-with-leftover-test.zip",

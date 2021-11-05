@@ -17,7 +17,8 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.testcleanup.TestFilesCleanupRootPlugin
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.testcleanup.extension.TestFileCleanUpRootExtension
+import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceProjectExtension
+import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -28,15 +29,18 @@ import gradlebuild.testcleanup.extension.TestFileCleanUpRootExtension
  * Team City.
  */
 
+val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
+    reportOnly.convention(false)
+}
+
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
     rootProject.plugins.apply(TestFilesCleanupRootPlugin::class.java)
-    val globalExtension = rootProject.extensions.getByType<TestFileCleanUpRootExtension>()
+    val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
 
-    val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
-        reportOnly.convention(false)
-    }
+    val projectExtension = extensions.create<TestFilesCleanupBuildServiceProjectExtension>("testFilesCleanupBuildService")
 
-    globalExtension.projectExtensions.put(path, testFilesCleanup)
-    testFilesCleanup.projectBuildDir.set(buildDir)
-    testFilesCleanup.projectName.set(name)
+    globalExtension.projectExtensions.put(path, projectExtension)
+    projectExtension.projectBuildDir.set(buildDir)
+    projectExtension.projectName.set(name)
+    projectExtension.reportOnly.set(testFilesCleanup.reportOnly)
 }

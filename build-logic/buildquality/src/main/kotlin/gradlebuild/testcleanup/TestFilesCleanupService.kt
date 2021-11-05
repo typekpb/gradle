@@ -17,11 +17,17 @@
 package gradlebuild.testcleanup
 
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.testcleanup.extension.TestFileCleanUpRootExtension
+import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceProjectExtension
+import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
 import org.gradle.api.GradleException
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -36,30 +42,9 @@ import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
-import kotlin.collections.Collection
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.MutableList
-import kotlin.collections.MutableMap
-import kotlin.collections.any
-import kotlin.collections.associateWith
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.contains
-import kotlin.collections.emptyList
-import kotlin.collections.emptyMap
-import kotlin.collections.filter
-import kotlin.collections.flatMap
-import kotlin.collections.forEach
-import kotlin.collections.getOrDefault
-import kotlin.collections.getValue
-import kotlin.collections.isNotEmpty
-import kotlin.collections.joinToString
-import kotlin.collections.mutableListOf
-import kotlin.collections.mutableMapOf
-import kotlin.collections.plus
 import kotlin.collections.set
-import kotlin.collections.toTypedArray
 
 
 typealias LeftoverFiles = Map<File, List<String>>
@@ -67,7 +52,30 @@ typealias LeftoverFiles = Map<File, List<String>>
 
 abstract class TestFilesCleanupService @Inject constructor(
     private val fileSystemOperations: FileSystemOperations
-) : BuildService<TestFileCleanUpRootExtension>, AutoCloseable, OperationCompletionListener {
+) : BuildService<TestFilesCleanupService.Params>, AutoCloseable, OperationCompletionListener {
+
+    interface Params : BuildServiceParameters, TestFilesCleanupBuildServiceRootExtension {
+        val rootBuildDir: DirectoryProperty
+        val cleanupRunnerStep: Property<Boolean>
+
+        /**
+         * The mapping task path to project path
+         */
+        val relevantTaskPathToProjectPath: MapProperty<String, String>
+
+        /**
+         * Key is the path of a task, value is the possible report dirs it generates.
+         */
+        val taskPathToGenericHtmlReports: MapProperty<String, List<File>>
+        val taskPathToAttachedReports: MapProperty<String, List<File>>
+        val taskPathToCustomReports: MapProperty<String, List<File>>
+        val taskPathToTDTraceJsons: MapProperty<String, List<File>>
+
+        /**
+         * Key is the path of the test, value is Test.binaryResultsDir
+         */
+        val testPathToBinaryResultsDirs: MapProperty<String, File>
+    }
 
     private
     val projectPathToFailedTaskPaths: MutableMap<String, MutableList<String>> = mutableMapOf()
@@ -168,11 +176,19 @@ abstract class TestFilesCleanupService @Inject constructor(
 
         // Second run: verify and throw exceptions
         if (!cleanupRunnerStep) {
+            val exceptions = mutableListOf<Exception>()
             parameters.projectExtensions.get()
                 .filter { projectPathToLeftoverFiles.containsKey(it.key) }
                 .forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
-                    projectExtension.verifyTestFilesCleanup(getFailedTaskPaths(projectPath), projectPathToLeftoverFiles.getValue(projectPath))
+                    try {
+                        projectExtension.verifyTestFilesCleanup(getFailedTaskPaths(projectPath), projectPathToLeftoverFiles.getValue(projectPath))
+                    } catch (e: Exception) {
+                        exceptions.add(e)
+                    }
                 }
+            if (exceptions.isNotEmpty()) {
+                throw DefaultMultiCauseException("", exceptions)
+            }
         }
     }
 
@@ -203,7 +219,7 @@ abstract class TestFilesCleanupService @Inject constructor(
      * Returns non-empty directories: the mapping of directory to at most 4 leftover files' relative path in the directory.
      */
     private
-    fun TestFileCleanUpExtension.tmpTestFiles(): LeftoverFiles = projectBuildDir.get().asFile.resolve("tmp/test files")
+    fun TestFilesCleanupBuildServiceProjectExtension.tmpTestFiles(): LeftoverFiles = projectBuildDir.get().asFile.resolve("tmp/test files")
         .listFiles()
         ?.associateWith { dir ->
             val dirPath = dir.toPath()
@@ -218,7 +234,7 @@ abstract class TestFilesCleanupService @Inject constructor(
         } ?: emptyMap()
 
     private
-    fun TestFileCleanUpExtension.prepareReportsForCiPublishing(taskPathsToCollectReports: List<String>, executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {
+    fun TestFilesCleanupBuildServiceProjectExtension.prepareReportsForCiPublishing(taskPathsToCollectReports: List<String>, executedTaskPaths: List<String>, tmpTestFiles: Collection<File>) {
         val collectedTaskHtmlReports = taskPathsToCollectReports.flatMap { taskPathToGenericHtmlReports.getOrDefault(it, emptyList()) }
         val attachedReports = executedTaskPaths.flatMap { taskPathToAttachedReports.getOrDefault(it, emptyList()) }
         val executedTaskCustomReports = taskPathsToCollectReports.flatMap { taskPathToCustomReports.getOrDefault(it, emptyList()) }
@@ -230,7 +246,7 @@ abstract class TestFilesCleanupService @Inject constructor(
     }
 
     private
-    fun TestFileCleanUpExtension.prepareReportForCiPublishing(report: File) {
+    fun TestFilesCleanupBuildServiceProjectExtension.prepareReportForCiPublishing(report: File) {
         if (report.exists()) {
             if (report.isDirectory) {
                 val destFile = rootBuildDir.resolve("report-${projectName.get()}-${report.name}.zip")
